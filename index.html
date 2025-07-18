@@ -32,46 +32,56 @@
       <button id="startScan" type="button">Scan barcode</button>
     </div>
     <script type="module">
-const video = document.getElementById('bugCam');
-const btn = document.getElementById('startScan');
-const input = document.querySelector('#serial_number'); // ← Update your selector
+      const video = document.getElementById("bugCam");
+      const btn = document.getElementById("startScan");
+      const input = document.querySelector("#serial_number"); // ← Update your selector
 
-btn.addEventListener('click', async () => {
-btn.disabled = true; // Prevents double-click
-video.style.display = 'block';
+      btn.addEventListener("click", async () => {
+        btn.disabled = true; // Prevents double-click
+        video.style.display = "block";
 
-// 1. Request rear camera
-const stream = await navigator.mediaDevices.getUserMedia({
-video: { facingMode: { ideal: 'environment' }, width:640, height:480 }
-});
-video.srcObject = stream;
-await video.play();
+        // 1. Request rear camera
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+            width: 640,
+            height: 480,
+          },
+        });
+        video.srcObject = stream;
+        await video.play();
 
-// 2. Try native API; if not – ZXing
-if ('BarcodeDetector' in window) {
-const detector = new BarcodeDetector({ formats: ['ean_13','code_128','qr_code'] });
-const tick = async () => {
-const codes = await detector.detect(video);
-if (codes.length) return finish(codes[0].rawValue);
-requestAnimationFrame(tick);
-};
-tick();
-} else {
-const { BrowserMultiFormatReader } =
-await import('https://cdn.jsdelivr.net/npm/@zxing/browser@0.0.18/+esm');
-const reader = new BrowserMultiFormatReader();
-reader.decodeFromVideoElement(video, res => {
-if (res) { finish(res.getText()); reader.reset(); }
-});
-}
+        // 2. Try native API; if not – ZXing
+        if ("BarcodeDetector" in window) {
+          const detector = new BarcodeDetector({
+            formats: ["ean_13", "code_128", "qr_code"],
+          });
+          const tick = async () => {
+            const codes = await detector.detect(video);
+            if (codes.length) return finish(codes[0].rawValue);
+            requestAnimationFrame(tick);
+          };
+          tick();
+        } else {
+          const { BrowserMultiFormatReader } = await import(
+            "https://cdn.jsdelivr.net/npm/@zxing/browser@0.0.18/+esm"
+          );
+          const reader = new BrowserMultiFormatReader();
+          reader.decodeFromVideoElement(video, (res) => {
+            if (res) {
+              finish(res.getText());
+              reader.reset();
+            }
+          });
+        }
 
-function finish(code){
-input.value = code; // writing to the form
-btn.textContent = 'Found: ' + code;
-stream.getTracks().forEach(t=>t.stop()); // turning off the camera
-video.remove();
-}
-});
-</script>
+        function finish(code) {
+          input.value = code; // writing to the form
+          btn.textContent = "Found: " + code;
+          stream.getTracks().forEach((t) => t.stop()); // turning off the camera
+          video.remove();
+        }
+      });
+    </script>
   </body>
 </html>
