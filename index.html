@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Scan Barcode</title>
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
   </head>
   <body>
     <h1>Welcome to Scan Barcode</h1>
@@ -38,7 +39,7 @@
       ><br />
       <button id="startScan" type="button">Scan barcode</button>
     </div>
-    <script type="module">
+    <script>
       const video = document.getElementById("bugCam");
       const btn = document.getElementById("startScan");
       const input = document.querySelector("#serial_number"); // ← Update your selector
@@ -70,14 +71,12 @@
           };
           tick();
         } else {
-          const { BrowserMultiFormatReader } = await import(
-            "https://cdn.jsdelivr.net/npm/@zxing/browser@0.0.18/+esm"
-          );
-          const reader = new BrowserMultiFormatReader();
-          reader.decodeFromVideoElement(video, (res) => {
-            if (res) {
-              finish(res.getText());
-              reader.reset();
+          console.log("ZXing fallback loaded");
+          const codeReader = new ZXing.BrowserMultiFormatReader();
+          codeReader.decodeFromVideoDevice(null, video, (result, err) => {
+            if (result) {
+              finish(result.getText());
+              codeReader.reset();
             }
           });
         }
